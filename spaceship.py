@@ -2,7 +2,8 @@ import pygame
 from laser import Laser
 
 class Spaceship(pygame.sprite.Sprite):
-	def __init__(self, screen_width, screen_height, offset):
+	def __init__(self, screen_width, screen_height, offset,
+	             left_key=pygame.K_LEFT, right_key=pygame.K_RIGHT, shoot_key=pygame.K_UP):
 		super().__init__()
 		self.offset = offset
 		self.screen_width = screen_width
@@ -16,16 +17,21 @@ class Spaceship(pygame.sprite.Sprite):
 		self.laser_delay = 300
 		self.laser_sound = pygame.mixer.Sound("Sounds/laser.ogg")
 
+		# Controles personalizables
+		self.left_key = left_key
+		self.right_key = right_key
+		self.shoot_key = shoot_key
+
 	def get_user_input(self):
 		keys = pygame.key.get_pressed()
 
-		if keys[pygame.K_RIGHT]:
+		if keys[self.right_key]:
 			self.rect.x += self.speed
 
-		if keys[pygame.K_LEFT]:
+		if keys[self.left_key]:
 			self.rect.x -= self.speed
 
-		if keys[pygame.K_SPACE] and self.laser_ready:
+		if keys[self.shoot_key] and self.laser_ready:
 			self.laser_ready = False
 			laser = Laser(self.rect.center, 5, self.screen_height)
 			self.lasers_group.add(laser)
