@@ -1,61 +1,53 @@
 import pygame
 from laser import Laser
 
+#Clase que representa una nave espacial controlada por un jugador
 class Spaceship(pygame.sprite.Sprite):
-	def __init__(self, screen_width, screen_height, offset,
-	             left_key=pygame.K_LEFT, right_key=pygame.K_RIGHT, shoot_key=pygame.K_UP):
-		super().__init__()
-		self.offset = offset
-		self.screen_width = screen_width
-		self.screen_height = screen_height
-		self.image = pygame.image.load("Graphics/spaceship.png")
-		self.rect = self.image.get_rect(midbottom = ((self.screen_width + self.offset)/2, self.screen_height))
-		self.speed = 6
-		self.lasers_group = pygame.sprite.Group()
-		self.laser_ready = True
-		self.laser_time = 0
-		self.laser_delay = 300
-		self.laser_sound = pygame.mixer.Sound("Sounds/laser.ogg")
+    def __init__(self, screen_width, screen_height, offset,
+                 left_key=pygame.K_LEFT, right_key=pygame.K_RIGHT, shoot_key=pygame.K_UP,
+                 image_path="Graphics/spaceship.png"):
+        super().__init__()
+        self.image = pygame.image.load(image_path).convert_alpha()  # Imagen de la nave
+        self.rect = self.image.get_rect(midbottom=(screen_width // 2, screen_height - 20))
+        self.speed = 6
+        self.screen_width = screen_width
+        self.offset = offset
+        self.lasers_group = pygame.sprite.Group()  #Grupo de disparos
+        self.ready = True
+        self.laser_time = 0
+        self.laser_cooldown = 600  #Tiempo entre disparos en ms
+        self.shoot_sound = pygame.mixer.Sound("Sounds/laser.ogg")  #Sonido de disparo
+        self.left_key = left_key
+        self.right_key = right_key
+        self.shoot_key = shoot_key
 
-		# Controles personalizables
-		self.left_key = left_key
-		self.right_key = right_key
-		self.shoot_key = shoot_key
+    def get_keys(self):
+        keys = pygame.key.get_pressed()
+        if keys[self.left_key]:
+            self.rect.x -= self.speed
+        if keys[self.right_key]:
+            self.rect.x += self.speed
+        if keys[self.shoot_key] and self.ready:
+            self.shoot_laser()
+            self.ready = False
+            self.laser_time = pygame.time.get_ticks()
 
-	def get_user_input(self):
-		keys = pygame.key.get_pressed()
+    def recharge(self):
+        if not self.ready:
+            current_time = pygame.time.get_ticks()
+            if current_time - self.laser_time >= self.laser_cooldown:
+                self.ready = True
 
-		if keys[self.right_key]:
-			self.rect.x += self.speed
+    def shoot_laser(self):
+        self.lasers_group.add(Laser(self.rect.center, 6, self.screen_width))
+        self.shoot_sound.play()
 
-		if keys[self.left_key]:
-			self.rect.x -= self.speed
+    def update(self):
+        self.get_keys()
+        self.recharge()
+        self.lasers_group.update()
 
-		if keys[self.shoot_key] and self.laser_ready:
-			self.laser_ready = False
-			laser = Laser(self.rect.center, 5, self.screen_height)
-			self.lasers_group.add(laser)
-			self.laser_time = pygame.time.get_ticks()
-			self.laser_sound.play()
-
-	def update(self):
-		self.get_user_input()
-		self.constrain_movement()
-		self.lasers_group.update()
-		self.recharge_laser()
-
-	def constrain_movement(self):
-		if self.rect.right > self.screen_width:
-			self.rect.right = self.screen_width
-		if self.rect.left < self.offset:
-			self.rect.left = self.offset
-
-	def recharge_laser(self):
-		if not self.laser_ready:
-			current_time = pygame.time.get_ticks()
-			if current_time - self.laser_time >= self.laser_delay:
-				self.laser_ready = True
-
-	def reset(self):
-		self.rect = self.image.get_rect(midbottom = ((self.screen_width + self.offset)/2, self.screen_height))
-		self.lasers_group.empty()
+    def reset(self):
+        self.rect.midbottom = (self.screen_width // 2, self.rect.bottom)
+        self.lasers_group.empty()
+        self.ready = True

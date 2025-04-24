@@ -1,25 +1,21 @@
 import pygame
 
-# Clase que representa un disparo (láser)
+#Clase que representa un disparo láser
 class Laser(pygame.sprite.Sprite):
     def __init__(self, posicion, velocidad, alto_pantalla):
-        super().__init__()  # Inicializa la clase base Sprite
+        super().__init__()
 
-        # Crear la superficie del láser: un rectángulo de 4x15 píxeles
-        self.imagen = pygame.Surface((4, 15))
-        self.imagen.fill((243, 216, 63))  # Color amarillo
+        #Crea la superficie del láser
+        self.image = pygame.Surface((4, 15))
+        self.image.fill((243, 216, 63))  #Color amarillo
+        self.rect = self.image.get_rect(center=posicion)  #Posición inicial
 
-        # Obtener el rectángulo de colisión centrado en la posición recibida
-        self.rectangulo = self.imagen.get_rect(center=posicion)
+        self.velocidad = velocidad  #Velocidad vertical del láser
+        self.alto_pantalla = alto_pantalla  #Límite de la pantalla
 
-        self.velocidad = velocidad  # Velocidad del láser (negativa hacia arriba)
-        self.alto_pantalla = alto_pantalla  # Límite vertical de la pantalla
+    def update(self):
+        self.rect.y -= self.velocidad  #Mueve el láser en Y
 
-    # Método que actualiza la posición del láser
-    def actualizar(self):
-        # Mover el láser en el eje Y
-        self.rectangulo.y -= self.velocidad
-
-        # Eliminar el láser si sale de la pantalla
-        if self.rectangulo.y > self.alto_pantalla + 15 or self.rectangulo.y < 0:
-            self.kill()  # Quita el sprite del grupo
+        #Elimina el láser si sale de la pantalla
+        if self.rect.y > self.alto_pantalla + 15 or self.rect.y < 0:
+            self.kill()
