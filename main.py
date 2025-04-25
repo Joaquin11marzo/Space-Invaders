@@ -35,7 +35,7 @@ NAVE_MISTERIOSA = pygame.USEREVENT + 1
 estrellas = [[random.randint(0, ANCHO_VENTANA), random.randint(0, ALTO_VENTANA), random.randint(1, 3)] for _ in range(100)]
 
 # Sonidos
-sonido_seleccion = pygame.mixer.Sound("Sounds/laser.ogg")
+sonido_seleccion = pygame.mixer.Sound("Sounds/Laser.ogg")
 CENTRO_X = (ANCHO_VENTANA + MARGEN) // 2
 
 # Variables de estado
