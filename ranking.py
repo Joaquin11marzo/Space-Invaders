@@ -11,10 +11,20 @@ def cargar_ranking():
     else:
         return []
 
-# Guarda un nuevo puntaje y nombre en el ranking, manteniendo los 3 mejores
+# Guarda un nuevo puntaje y nombre en el ranking, sumando si ya existe
 def guardar_ranking(nombre, puntaje):
     ranking = cargar_ranking()
-    ranking.append({"nombre": nombre, "puntaje": puntaje})
+
+    encontrado = False
+    for entrada in ranking:
+        if entrada['nombre'] == nombre:
+            entrada['puntaje'] += puntaje
+            encontrado = True
+            break
+
+    if not encontrado:
+        ranking.append({"nombre": nombre, "puntaje": puntaje})
+
     ranking = sorted(ranking, key=lambda x: x['puntaje'], reverse=True)[:3]
 
     with open(RANKING_PATH, 'w') as f:
@@ -23,3 +33,8 @@ def guardar_ranking(nombre, puntaje):
 # Devuelve el top 3 actual
 def obtener_top_3():
     return cargar_ranking()
+
+# Borra todo el ranking
+def resetear_ranking():
+    with open(RANKING_PATH, 'w') as f:
+        json.dump([], f)

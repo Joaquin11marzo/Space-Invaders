@@ -1,38 +1,45 @@
-# game_two_players.py
 import pygame, random
 from spaceship import Spaceship
-from obstacle import Obstacle
-from obstacle import grid
+from obstacle import Obstacle, grid
 from alien import Alien, MysteryShip
 from laser import Laser
 from ranking import guardar_ranking
 
+# Clase principal para el modo de dos jugadores
 class GameTwoPlayers:
     def __init__(self, screen_width, screen_height, offset):
         self.screen_width = screen_width
         self.screen_height = screen_height
         self.offset = offset
+
+        # Naves para los dos jugadores con controles distintos
         self.spaceships = pygame.sprite.Group()
         self.player1 = Spaceship(screen_width, screen_height, offset, left_key=pygame.K_LEFT, right_key=pygame.K_RIGHT, shoot_key=pygame.K_UP)
         self.player2 = Spaceship(screen_width, screen_height, offset, left_key=pygame.K_a, right_key=pygame.K_d, shoot_key=pygame.K_w, image_path="Graphics/spaceshipV.png")
-        self.player2.rect.bottom += 40
+        self.player2.rect.bottom += 40  # Ajusta posición
         self.spaceships.add(self.player1, self.player2)
+
         self.obstacles = self.create_obstacles()
         self.aliens_group = pygame.sprite.Group()
-        self.create_aliens()
-        self.aliens_direction = 1
         self.alien_lasers_group = pygame.sprite.Group()
         self.mystery_ship_group = pygame.sprite.GroupSingle()
+        self.aliens_direction = 1
+
         self.lives = {self.player1: 3, self.player2: 3}
         self.score = {self.player1: 0, self.player2: 0}
         self.highscore = 0
         self.run = True
+
+        self.nombre_jugador = ""
+        self.nombre_jugador2 = ""
+        self.nivel = 1  # Nivel inicial
+
         self.explosion_sound = pygame.mixer.Sound("Sounds/explosion.ogg")
         pygame.mixer.music.load("Sounds/music.ogg")
         pygame.mixer.music.play(-1)
         self.load_highscore()
-        self.nombre_jugador = ""
-        self.nombre_jugador2 = ""
+
+        self.create_aliens(self.nivel)
 
     def create_obstacles(self):
         obstacle_width = len(grid[0]) * 3
@@ -44,8 +51,10 @@ class GameTwoPlayers:
             obstacles.append(obstacle)
         return obstacles
 
-    def create_aliens(self):
-        for row in range(5):
+    def create_aliens(self, nivel):
+        self.aliens_group.empty()
+        filas = 5 + nivel  # Más filas con cada nivel
+        for row in range(min(filas, 8)):
             for column in range(11):
                 x = 75 + column * 55
                 y = 110 + row * 55
@@ -122,6 +131,16 @@ class GameTwoPlayers:
             self.run = False
             guardar_ranking(self.nombre_jugador, self.score[self.player1])
             guardar_ranking(self.nombre_jugador2, self.score[self.player2])
+
+        # Si se eliminaron todos los aliens, subir de nivel
+        if not self.aliens_group and self.run:
+            if self.nivel < 5:
+                self.nivel += 1
+                self.create_aliens(self.nivel)
+            else:
+                self.run = False
+                guardar_ranking(self.nombre_jugador, self.score[self.player1])
+                guardar_ranking(self.nombre_jugador2, self.score[self.player2])
 
     def check_for_highscore(self, ship):
         if self.score[ship] > self.highscore:
